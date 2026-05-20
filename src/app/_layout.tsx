@@ -29,6 +29,7 @@ function RootStack() {
       >
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="checklist/[id]/index" />
+        <Stack.Screen name="checklist/[id]/edit" options={{ presentation: 'modal' }} />
         <Stack.Screen name="checklist/[id]/item/[itemId]" />
         <Stack.Screen name="execution/[id]" />
         <Stack.Screen name="executions/running" />

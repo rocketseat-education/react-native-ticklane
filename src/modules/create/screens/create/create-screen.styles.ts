@@ -16,5 +16,11 @@ export const createStyles = (theme: Theme) => {
     gap: theme.spacing.md,
   };
 
-  return StyleSheet.create({ flex, scrollContent, section });
+  const loading: ViewStyle = {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
+
+  return StyleSheet.create({ flex, scrollContent, section, loading });
 };

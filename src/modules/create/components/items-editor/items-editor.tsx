@@ -10,6 +10,8 @@ import { useItemsEditor } from './use-items-editor';
 
 export type DraftItem = {
   tempId: string;
+  /** Id do item existente (modo edição). */
+  id?: string;
   title: string;
   description: string;
 };

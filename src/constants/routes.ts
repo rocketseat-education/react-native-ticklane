@@ -8,6 +8,7 @@ export const ROUTES = {
     profile: '/profile',
   },
   checklistDetails: (id: string) => `/checklist/${id}` as const,
+  checklistEdit: (id: string) => `/checklist/${id}/edit` as const,
   itemDetails: (checklistId: string, itemId: string) =>
     `/checklist/${checklistId}/item/${itemId}` as const,
   execution: (id: string) => `/execution/${id}` as const,
@@ -23,6 +24,7 @@ export const ROUTES = {
 export type AppRoute =
   | (typeof ROUTES.tabs)[keyof typeof ROUTES.tabs]
   | ReturnType<typeof ROUTES.checklistDetails>
+  | ReturnType<typeof ROUTES.checklistEdit>
   | ReturnType<typeof ROUTES.itemDetails>
   | ReturnType<typeof ROUTES.execution>
   | typeof ROUTES.runningExecutionsList

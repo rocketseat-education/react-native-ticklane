@@ -75,6 +75,7 @@ export const COPY = {
     },
     checklistDetails: {
       title: 'Checklist',
+      editCta: 'Editar checklist',
       cta: 'Iniciar execução',
       itemsTitle: 'Itens',
       linksTitle: 'Links úteis',
@@ -141,6 +142,34 @@ export const COPY = {
       notFoundTitle: 'Item não encontrado',
       notFoundDescription: 'Este item pode ter sido removido ou movido.',
     },
+    editChecklist: {
+      title: 'Editar checklist',
+      subtitle: 'Atualize o processo e os passos da tua lista.',
+      cta: 'Guardar alterações',
+      sections: {
+        details: 'Detalhes',
+        category: 'Categoria',
+        tags: 'Tags',
+        items: 'Itens',
+      },
+      fields: {
+        titleLabel: 'Título',
+        titlePlaceholder: 'Ex: Deploy iOS na App Store',
+        descriptionLabel: 'Descrição',
+        descriptionPlaceholder: 'Resumo curto do processo (opcional)',
+        tagsLabel: 'Tags',
+        tagsPlaceholder: 'Adicione uma tag e pressione Enter',
+        itemTitlePlaceholder: 'Título do item',
+        itemDescriptionPlaceholder: 'Descrição (opcional)',
+      },
+      validation: {
+        titleRequired: 'Informe um título.',
+        categoryRequired: 'Selecione uma categoria.',
+        itemsRequired: 'Adicione pelo menos um item.',
+        itemTitleRequired: 'Cada item precisa de um título.',
+        notFound: 'Checklist não encontrada.',
+      },
+    },
     create: {
       title: 'Nova checklist',
       subtitle: 'Compartilhe um processo reutilizável com a comunidade.',
@@ -170,6 +199,7 @@ export const COPY = {
         categoryRequired: 'Selecione uma categoria.',
         itemsRequired: 'Adicione pelo menos um item.',
         itemTitleRequired: 'Cada item precisa de um título.',
+        notFound: 'Checklist não encontrada.',
       },
     },
     auth: {

@@ -1,5 +1,5 @@
 import { Feather } from '@expo/vector-icons';
-import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { Container } from '@/components/container';
@@ -13,9 +13,11 @@ import { COPY } from '@/constants/copy';
 import { CategorySelector } from '../../components/category-selector';
 import { ItemsEditor } from '../../components/items-editor';
 import { TagInput } from '../../components/tag-input';
-import { useCreateScreen } from './use-create-screen';
+import { useCreateScreen, type UseCreateScreenParams } from './use-create-screen';
 
-export function CreateScreen() {
+export type CreateScreenProps = UseCreateScreenParams;
+
+export function CreateScreen({ checklistId }: CreateScreenProps) {
   const {
     styles,
     title,
@@ -25,6 +27,8 @@ export function CreateScreen() {
     items,
     categories,
     errors,
+    isSubmitting,
+    isFormReady,
     screenTitle,
     screenSubtitle,
     sectionsCopy,
@@ -41,7 +45,17 @@ export function CreateScreen() {
     handleChangeItemDescription,
     handleClose,
     handleSubmit,
-  } = useCreateScreen();
+  } = useCreateScreen({ checklistId });
+
+  if (!isFormReady) {
+    return (
+      <Container paddingVertical="none">
+        <View style={styles.loading}>
+          <ActivityIndicator />
+        </View>
+      </Container>
+    );
+  }
 
   return (
     <Container paddingVertical="none">
@@ -120,7 +134,19 @@ export function CreateScreen() {
             ) : null}
           </View>
 
-          <Button label={submitLabel} onPress={handleSubmit} isFullWidth />
+          {errors.submit ? (
+            <Text variant="caption" color="danger">
+              {errors.submit}
+            </Text>
+          ) : null}
+
+          <Button
+            label={submitLabel}
+            onPress={handleSubmit}
+            isFullWidth
+            isLoading={isSubmitting}
+            isDisabled={isSubmitting}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </Container>

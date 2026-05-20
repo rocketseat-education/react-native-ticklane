@@ -35,6 +35,7 @@ export function useDetailsScreen({ id }: UseDetailsScreenParams) {
   const screenCopy = COPY.screens.checklistDetails;
   const styles = useMemo(() => createStyles(theme), [theme]);
   const checklist = useChecklist(id, viewerId);
+  const isAuthor = Boolean(checklist && viewerId && checklist.authorId === viewerId);
   const comments = useCommentsByChecklist(id);
 
   useFocusEffect(
@@ -93,11 +94,21 @@ export function useDetailsScreen({ id }: UseDetailsScreenParams) {
     setIsRateSheetVisible(false);
   }, []);
 
+  const handleEditPress = useCallback(async () => {
+    const ok = await requireAuth('create');
+
+    if (ok) {
+      router.push(ROUTES.checklistEdit(id));
+    }
+  }, [id, requireAuth, router]);
+
   return {
     styles,
     title: screenCopy.title,
     subtitle: id,
     ctaLabel: screenCopy.cta,
+    editLabel: screenCopy.editCta,
+    isAuthor,
     itemsTitle: screenCopy.itemsTitle,
     linksTitle: screenCopy.linksTitle,
     commentsTitle: screenCopy.commentsTitle,
@@ -111,5 +122,6 @@ export function useDetailsScreen({ id }: UseDetailsScreenParams) {
     handleItemPress,
     handleRatePress,
     handleRateSheetClose,
+    handleEditPress,
   };
 }

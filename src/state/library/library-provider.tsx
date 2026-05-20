@@ -2,17 +2,20 @@ import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } fro
 import { StyleSheet, Text, View } from 'react-native';
 
 import { BrandLoading } from '@/components/brand-loading';
+import { createChecklistRequest, updateChecklistRequest } from '@/lib/checklistWriteApi';
 import { createCommentRequest } from '@/lib/commentApi';
 import { addFavoriteRequest, removeFavoriteRequest } from '@/lib/favoriteApi';
 import { fetchLibraryFromApi } from '@/lib/fetchLibraryFromApi';
 import { useAuth } from '@/modules/auth/context';
 
+import { applyChecklistWriteResponse } from './apply-checklist-write';
 import { LibraryContext } from './library-context';
 import type {
-  CreateChecklistInput,
+  ChecklistFormInput,
   LibraryActions,
   LibraryContextValue,
   LibraryState,
+  UpdateChecklistInput,
 } from './library-types';
 
 const generateId = (prefix: string) =>
@@ -234,44 +237,50 @@ export function LibraryProvider({ children }: LibraryProviderProps) {
     [],
   );
 
-  const createChecklist = useCallback<LibraryActions['createChecklist']>(
-    (input: CreateChecklistInput, authorId) => {
-      const checklistId = generateId('cl');
-      const createdAt = new Date().toISOString();
+  const createChecklist = useCallback<LibraryActions['createChecklist']>(async (input) => {
+    const result = await createChecklistRequest({
+      title: input.title,
+      description: input.description,
+      categoryId: input.categoryId,
+      tags: input.tags,
+      visibility: input.visibility ?? 'public',
+      items: input.items.map((item) => ({
+        title: item.title,
+        description: item.description,
+      })),
+      links: input.links,
+    });
 
-      setState((current) => {
-        const nextItems = input.items.map((item, index) => ({
-          id: generateId('item'),
-          checklistId,
+    if (!result.ok) {
+      return result;
+    }
+
+    setState((current) => applyChecklistWriteResponse(current, result.data));
+    return { ok: true, checklistId: result.data.checklist.id };
+  }, []);
+
+  const updateChecklist = useCallback<LibraryActions['updateChecklist']>(
+    async (checklistId, input: UpdateChecklistInput) => {
+      const result = await updateChecklistRequest(checklistId, {
+        title: input.title,
+        description: input.description,
+        categoryId: input.categoryId,
+        tags: input.tags,
+        visibility: input.visibility,
+        items: input.items.map((item) => ({
+          ...(item.id ? { id: item.id } : {}),
           title: item.title,
           description: item.description,
-          order: index + 1,
-        }));
-
-        const newChecklist = {
-          id: checklistId,
-          title: input.title,
-          description: input.description,
-          categoryId: input.categoryId,
-          visibility: input.visibility ?? 'public',
-          authorId,
-          tags: input.tags,
-          averageRating: 0,
-          favoritesCount: 0,
-          executionsCount: 0,
-          commentsCount: 0,
-          createdAt,
-          updatedAt: createdAt,
-        } as const;
-
-        return {
-          ...current,
-          checklists: [...current.checklists, newChecklist],
-          checklistItems: [...current.checklistItems, ...nextItems],
-        };
+        })),
+        links: input.links,
       });
 
-      return checklistId;
+      if (!result.ok) {
+        return result;
+      }
+
+      setState((current) => applyChecklistWriteResponse(current, result.data));
+      return { ok: true, checklistId: result.data.checklist.id };
     },
     [],
   );
@@ -280,13 +289,23 @@ export function LibraryProvider({ children }: LibraryProviderProps) {
     () => ({
       ...state,
       createChecklist,
+      updateChecklist,
       toggleFavorite,
       isFavorite,
       addComment,
       rateChecklist,
       reload,
     }),
-    [state, createChecklist, toggleFavorite, isFavorite, addComment, rateChecklist, reload],
+    [
+      state,
+      createChecklist,
+      updateChecklist,
+      toggleFavorite,
+      isFavorite,
+      addComment,
+      rateChecklist,
+      reload,
+    ],
   );
 
   if (loadStatus === 'loading') {

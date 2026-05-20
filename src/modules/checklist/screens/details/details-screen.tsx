@@ -25,6 +25,8 @@ export function DetailsScreen({ id }: DetailsScreenProps) {
   const {
     styles,
     ctaLabel,
+    editLabel,
+    isAuthor,
     itemsTitle,
     linksTitle,
     commentsTitle,
@@ -38,6 +40,7 @@ export function DetailsScreen({ id }: DetailsScreenProps) {
     handleItemPress,
     handleRatePress,
     handleRateSheetClose,
+    handleEditPress,
   } = useDetailsScreen({ id });
 
   if (!checklist) {
@@ -70,6 +73,14 @@ export function DetailsScreen({ id }: DetailsScreenProps) {
             onPress={handleBack}
             renderIcon={({ size, color }) => <Feather name="arrow-left" size={size} color={color} />}
           />
+          {isAuthor ? (
+            <IconButton
+              variant="ghost"
+              accessibilityLabel={editLabel}
+              onPress={handleEditPress}
+              renderIcon={({ size, color }) => <Feather name="edit-2" size={size} color={color} />}
+            />
+          ) : null}
         </View>
 
         <ChecklistHeader checklist={checklist} onRatePress={handleRatePress} />
