@@ -6,9 +6,11 @@ import { createChecklistRequest, updateChecklistRequest } from '@/lib/checklistW
 import { createCommentRequest } from '@/lib/commentApi';
 import { addFavoriteRequest, removeFavoriteRequest } from '@/lib/favoriteApi';
 import { fetchLibraryFromApi } from '@/lib/fetchLibraryFromApi';
+import { setRatingRequest } from '@/lib/ratingApi';
 import { useAuth } from '@/modules/auth/context';
 
 import { applyChecklistWriteResponse } from './apply-checklist-write';
+import { computeChecklistAverageRating } from './compute-checklist-average-rating';
 import { LibraryContext } from './library-context';
 import type {
   ChecklistFormInput,
@@ -202,17 +204,21 @@ export function LibraryProvider({ children }: LibraryProviderProps) {
     return { ok: true, id: comment.id };
   }, []);
 
-  const rateChecklist = useCallback<LibraryActions['rateChecklist']>(
-    (checklistId, score, userId) => {
+  const applyRatingChange = useCallback(
+    (checklistId: string, userId: string, score: number, serverAverage?: number) => {
       setState((current) => {
         const existingIndex = current.ratings.findIndex(
           (record) => record.checklistId === checklistId && record.userId === userId,
         );
         const createdAt = new Date().toISOString();
 
-        const nextRatings = [...current.ratings];
+        let nextRatings = [...current.ratings];
 
-        if (existingIndex >= 0) {
+        if (score <= 0) {
+          nextRatings = nextRatings.filter(
+            (record) => !(record.checklistId === checklistId && record.userId === userId),
+          );
+        } else if (existingIndex >= 0) {
           nextRatings[existingIndex] = {
             ...nextRatings[existingIndex],
             score,
@@ -228,13 +234,44 @@ export function LibraryProvider({ children }: LibraryProviderProps) {
           });
         }
 
+        const averageRating =
+          serverAverage ?? computeChecklistAverageRating(nextRatings, checklistId);
+
+        const nextChecklists = current.checklists.map((checklist) =>
+          checklist.id === checklistId ? { ...checklist, averageRating } : checklist,
+        );
+
         return {
           ...current,
           ratings: nextRatings,
+          checklists: nextChecklists,
         };
       });
     },
     [],
+  );
+
+  const rateChecklist = useCallback<LibraryActions['rateChecklist']>(
+    (checklistId, score, userId) => {
+      const existing = state.ratings.find(
+        (record) => record.checklistId === checklistId && record.userId === userId,
+      );
+      const previousScore = existing?.score ?? 0;
+
+      applyRatingChange(checklistId, userId, score);
+
+      (async () => {
+        const result = await setRatingRequest(checklistId, score);
+        if (!result.ok) {
+          applyRatingChange(checklistId, userId, previousScore);
+          return;
+        }
+        if (result.averageRating !== undefined) {
+          applyRatingChange(checklistId, userId, score, result.averageRating);
+        }
+      })();
+    },
+    [applyRatingChange, state.ratings],
   );
 
   const createChecklist = useCallback<LibraryActions['createChecklist']>(async (input) => {
